@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.IO;
 using Microsoft.Extensions.Configuration;
+using System.Threading;
 
 namespace DNWS
 {
@@ -285,10 +286,11 @@ namespace DNWS
                     // Wait for client
                     clientSocket = serverSocket.Accept();
                     // Get one, show some info
-                    _parent.Log("Client accepted:" + clientSocket.RemoteEndPoint.ToString());
+                    _parent.Log("I think Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
+                    Thread InstanceCaller= new Thread( new ThreadStart(hp.Process));
                     // Single thread
-                    hp.Process();
+                    InstanceCaller.Start();
                     // End single therad
 
                 }
