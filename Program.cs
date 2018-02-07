@@ -283,8 +283,15 @@ namespace DNWS
         /// </summary>
         private static void poolFunc(object state)
         {
-            HTTPProcessor hp = (HTTPProcessor)state;
-            hp.Process();
+            try
+            {
+                HTTPProcessor hp = (HTTPProcessor)state;
+                hp.Process();
+            }
+            catch (Exception ex)
+            {
+                Console.Write("Server starting error: " + ex.Message + "\n" + ex.StackTrace);
+            }
         }
 
         /// <summary>
@@ -333,7 +340,7 @@ namespace DNWS
                     }else{
                         hp.Process();
                     }
-                    
+
                 }
                 catch (Exception ex)
                 {
