@@ -257,6 +257,16 @@ namespace DNWS
         }
 
         /// <summary>
+        /// Pool thread function
+        /// </summary>
+
+        private static void poolFunc(object state)
+        {
+            HTTPProcessor hp = (HTTPProcessor)state;
+            hp.Process();
+        }
+
+        /// <summary>
         /// Server starting point
         /// </summary>
         public void Start()
@@ -279,19 +289,25 @@ namespace DNWS
                 }
                 _port = _port + 1;
             }
+
+            ThreadPool.SetMaxThreads(100,100);
+
             while (true)
             {
                 try
                 {
+
                     // Wait for client
                     clientSocket = serverSocket.Accept();
                     // Get one, show some info
                     _parent.Log("I think Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
-                    Thread InstanceCaller= new Thread( new ThreadStart(hp.Process));
-                    // Single thread
-                    InstanceCaller.Start();
-                    // End single therad
+
+                    // Thread InstanceCaller= new Thread( new ThreadStart(hp.Process));
+                    // InstanceCaller.Start();
+
+                    WaitCallback callBack = new WaitCallback(poolFunc);
+                    ThreadPool.QueueUserWorkItem(callBack, hp);
 
                 }
                 catch (Exception ex)
