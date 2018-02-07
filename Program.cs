@@ -12,6 +12,8 @@ namespace DNWS
     // Main class
     public class Program
     {
+        public string threadMode;
+
         static public IConfigurationRoot Configuration { get; set; }
 
         // Log to console
@@ -27,6 +29,7 @@ namespace DNWS
             var builder = new ConfigurationBuilder();
             builder.SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("config.json");
             Configuration = builder.Build();
+            threadMode = Configuration["mode"];
             DotNetWebServer ws = DotNetWebServer.GetInstance(Convert.ToInt16(Configuration["Port"]), this);
             ws.Start();
         }
@@ -259,7 +262,6 @@ namespace DNWS
         /// <summary>
         /// Pool thread function
         /// </summary>
-
         private static void poolFunc(object state)
         {
             HTTPProcessor hp = (HTTPProcessor)state;
@@ -290,8 +292,6 @@ namespace DNWS
                 _port = _port + 1;
             }
 
-            ThreadPool.SetMaxThreads(100,100);
-
             while (true)
             {
                 try
@@ -303,12 +303,19 @@ namespace DNWS
                     _parent.Log("I think Client accepted:" + clientSocket.RemoteEndPoint.ToString());
                     HTTPProcessor hp = new HTTPProcessor(clientSocket, _parent);
 
-                    // Thread InstanceCaller= new Thread( new ThreadStart(hp.Process));
-                    // InstanceCaller.Start();
-
-                    WaitCallback callBack = new WaitCallback(poolFunc);
-                    ThreadPool.QueueUserWorkItem(callBack, hp);
-
+                    if(_parent.threadMode.Equals("single"))
+                    {
+                        Thread InstanceCaller= new Thread( new ThreadStart(hp.Process));
+                        InstanceCaller.Start();
+                        _parent.Log("I think it is "+ _parent.threadMode);
+                    }else if(_parent.threadMode.Equals("pool"))
+                    {
+                        WaitCallback callBack = new WaitCallback(poolFunc);
+                        ThreadPool.QueueUserWorkItem(callBack, hp);
+                        _parent.Log("I think it is "+ _parent.threadMode);
+                    }else{
+                        hp.Process();
+                    }
                 }
                 catch (Exception ex)
                 {

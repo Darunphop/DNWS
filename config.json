@@ -1,6 +1,7 @@
 ﻿{
     "DocumentRoot": ".",
     "Port": "8080",
+    "mode": "pool",
     "Plugins" : [
         {
             "Path" : "stat",
