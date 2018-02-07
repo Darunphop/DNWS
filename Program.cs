@@ -13,6 +13,7 @@ namespace DNWS
     public class Program
     {
         public string threadMode;
+        public int maxPool;
 
         static public IConfigurationRoot Configuration { get; set; }
 
@@ -30,6 +31,7 @@ namespace DNWS
             builder.SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("config.json");
             Configuration = builder.Build();
             threadMode = Configuration["mode"];
+            maxPool = Convert.ToInt32(Configuration["maxPool"]);
             DotNetWebServer ws = DotNetWebServer.GetInstance(Convert.ToInt16(Configuration["Port"]), this);
             ws.Start();
         }
@@ -242,6 +244,10 @@ namespace DNWS
             _port = port;
             _parent = parent;
             id = 0;
+            if(_parent.threadMode.Equals("pool"))
+            {
+                setMaxPool(_parent.maxPool);
+            }
         }
 
         /// <summary>
@@ -257,6 +263,19 @@ namespace DNWS
                 _instance = new DotNetWebServer(port, parent);
             }
             return _instance;
+        }
+
+        /// <summary>
+        /// Pool thread function
+        /// </summary>
+        public static void setMaxPool(int maxPool)
+        {
+            int workers;
+            int portThreads;
+            ThreadPool.GetMaxThreads(out workers, out portThreads);
+            workers = workers>maxPool?workers:maxPool;
+            portThreads = portThreads>maxPool?portThreads:maxPool;
+            ThreadPool.SetMaxThreads(workers, portThreads);
         }
 
         /// <summary>
@@ -307,15 +326,14 @@ namespace DNWS
                     {
                         Thread InstanceCaller= new Thread( new ThreadStart(hp.Process));
                         InstanceCaller.Start();
-                        _parent.Log("I think it is "+ _parent.threadMode);
                     }else if(_parent.threadMode.Equals("pool"))
                     {
                         WaitCallback callBack = new WaitCallback(poolFunc);
                         ThreadPool.QueueUserWorkItem(callBack, hp);
-                        _parent.Log("I think it is "+ _parent.threadMode);
                     }else{
                         hp.Process();
                     }
+                    
                 }
                 catch (Exception ex)
                 {
