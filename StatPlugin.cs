@@ -16,10 +16,6 @@ namespace DNWS
         manager = new RedisManagerPool("localhost:6379");
 
       }
-      // else if (statDictionary == null)
-      // {
-      //   statDictionary = new Dictionary<String, int>();
-      // }
     }
 
     public void PreProcessing(HTTPRequest request)
@@ -37,17 +33,7 @@ namespace DNWS
             client.Set(request.Url, 1);
           }
         }
-        // client.Set("foo", "bar");
-        // Console.WriteLine("foo={0}", client.Get<string>("foo"));
       }
-      // if (statDictionary.ContainsKey(request.Url))
-      // {
-      //   statDictionary[request.Url] = (int)statDictionary[request.Url] + 1;
-      // }
-      // else
-      // {
-      //   statDictionary[request.Url] = 1;
-      // }
     }
     public virtual HTTPResponse GetResponse(HTTPRequest request)
     {
@@ -62,10 +48,6 @@ namespace DNWS
           sb.Append(key + ": " + client.Get<int>(key) + "<br />");
         }
       }
-      // foreach (KeyValuePair<String, int> entry in statDictionary)
-      // {
-      //   sb.Append(entry.Key + ": " + entry.Value.ToString() + "<br />");
-      // }
       sb.Append("</body></html>");
       response = new HTTPResponse(200);
       response.Body = Encoding.UTF8.GetBytes(sb.ToString());
